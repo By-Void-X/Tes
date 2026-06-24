@@ -3,66 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VOID | Project Nexus</title>
+    <title>VOID // Project Nexus</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #000; color: #fff; font-family: 'Courier New', Courier, monospace; overflow-x: hidden; }
-        .void-glass { background: rgba(10, 10, 10, 0.7); border: 1px solid #333; backdrop-filter: blur(10px); }
-        .text-void { color: #a855f7; text-shadow: 0 0 10px #a855f7; }
-        .loading-overlay { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.5s; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap');
+        
+        :root {
+            --bg-void: radial-gradient(circle at 50% 50%, #0d0814 0%, #030206 100%);
+            --card-bg: rgba(15, 10, 25, 0.4);
+            --border-glow: rgba(168, 85, 247, 0.25);
+            --text-main: #f3e8ff;
+            --text-glow: 0 0 15px rgba(168, 85, 247, 0.6);
+        }
+
+        .light-mode {
+            --bg-void: radial-gradient(circle at 50% 50%, #f8fafc 0%, #e2e8f0 100%);
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --border-glow: rgba(126, 34, 206, 0.2);
+            --text-main: #1e1b4b;
+            --text-glow: none;
+        }
+
+        body {
+            background: var(--bg-void);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: all 0.5s ease;
+            min-height: screen;
+        }
+
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: #a855f7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+            transform: translateY(-4px);
+        }
+
+        .neon-text { text-shadow: var(--text-glow); }
+        
+        /* Custom Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="overflow-x-hidden selection:bg-purple-500 selection:text-white">
 
-    <!-- Loading -->
-    <div id="loader" class="loading-overlay">
-        <div class="animate-bounce mb-4 text-void">SYSTEM_INIT_VOID...</div>
-        <div class="w-48 h-1 bg-gray-800"><div id="bar" class="h-full bg-purple-500 w-0 transition-all"></div></div>
+    <!-- Loading Screen Dramatis -->
+    <div id="loader" class="fixed inset-0 bg-[#020105] z-50 flex flex-col items-center justify-center transition-all duration-700">
+        <div class="relative flex items-center justify-center">
+            <!-- Outer Core Aura -->
+            <div class="absolute w-32 h-32 bg-purple-600 rounded-full blur-2xl opacity-40 animate-pulse"></div>
+            <!-- Spinning Orb -->
+            <div class="w-16 h-16 border-2 border-t-purple-500 border-r-transparent border-b-purple-500 border-l-transparent rounded-full animate-spin"></div>
+            <div class="absolute font-space text-xs tracking-widest text-purple-400 font-bold">VOID</div>
+        </div>
+        <div class="mt-8 font-space tracking-widest text-sm opacity-60 text-purple-300 uppercase" id="boot-status">Calibrating Nexus Core...</div>
+        <div class="w-48 h-[2px] bg-white/5 mt-4 rounded-full overflow-hidden">
+            <div id="bar" class="h-full bg-purple-500 w-0 transition-all duration-300 shadow-[0_0_10px_#a855f7]"></div>
+        </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-4xl font-bold mb-10 text-void uppercase tracking-widest">// Project Nexus</h1>
+    <!-- Main Container -->
+    <div class="max-w-6xl mx-auto px-4 py-8 md:py-16">
         
-        <!-- Dashboard Real-time -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10" id="dash">
-            <div class="void-glass p-4 rounded text-center">BATT: <span id="batt">--</span>%</div>
-            <div class="void-glass p-4 rounded text-center">RAM: <span id="ram">--</span>GB</div>
-            <div class="void-glass p-4 rounded text-center">CPU: <span id="cpu">--</span></div>
-            <div class="void-glass p-4 rounded text-center" id="loc">LOC: Loading...</div>
-        </div>
+        <!-- Navbar Header -->
+        <header class="flex justify-between items-center mb-12 md:mb-20">
+            <div>
+                <span class="text-xs font-bold tracking-widest text-purple-500 font-space uppercase animate-pulse">// SYSTEM STATUS: ONLINE</span>
+                <h1 class="text-3xl md:text-4xl font-extrabold font-space tracking-tighter neon-text">VOID<span class="text-purple-500">.NEXUS</span></h1>
+            </div>
+            
+            <!-- Switch Theme Button -->
+            <button onclick="toggleTheme()" class="glass-card p-3 rounded-xl flex items-center justify-center text-sm font-space font-bold tracking-wider hover:text-purple-400">
+                <span id="theme-icon" class="mr-2">🌙</span> THEME
+            </button>
+        </header>
 
-        <!-- Repo List (Otomatis muncul dari GitHub) -->
-        <div id="repo-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        <!-- System Monitor Dashboard Component -->
+        <section class="mb-16">
+            <div class="flex items-center space-x-2 mb-6">
+                <div class="w-2 h-2 rounded-full bg-purple-500 animate-ping"></div>
+                <h2 class="text-sm font-bold font-space tracking-widest uppercase opacity-80">Hardware Telemetry</h2>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="dash">
+                <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+                    <span class="text-xs opacity-40 font-space block mb-1">BATTERY_LEVEL</span>
+                    <span id="batt" class="text-3xl font-extrabold font-space text-purple-400">--</span><span class="text-lg font-space text-purple-400">%</span>
+                </div>
+                <div class="glass-card p-6 rounded-2xl relative overflow-hidden">
+                    <span class="text-xs opacity-40 font-space block mb-1">DEVICE_MEMORY</span>
+                    <span id="ram" class="text-3xl font-extrabold font-space text-purple-400">--</span><span class="text-lg font-space text-purple-400">GB</span>
+                </div>
+                <div class="glass-card p-6 rounded-2xl relative overflow-hidden">
+                    <span class="text-xs opacity-40 font-space block mb-1">CPU_CORES</span>
+                    <span id="cpu" class="text-3xl font-extrabold font-space text-purple-400">--</span><span class="text-sm opacity-40 ml-1 font-space">THREADS</span>
+                </div>
+                <div class="glass-card p-6 rounded-2xl relative overflow-hidden">
+                    <span class="text-xs opacity-40 font-space block mb-1">NODE_LOCATION</span>
+                    <span id="loc" class="text-xl font-bold font-space text-purple-400 block mt-2 truncate">Detecting...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Repository Display Explorer -->
+        <section class="mb-12">
+            <div class="flex items-center space-x-2 mb-8">
+                <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                <h2 class="text-sm font-bold font-space tracking-widest uppercase opacity-80">Synced Repositories</h2>
+            </div>
+            
+            <!-- Grid List Target Injection -->
+            <div id="repo-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Data fetched real-time dynamically placed here -->
+            </div>
+        </section>
     </div>
 
     <script>
-        // 1. Loading Animation
-        let p = 0;
-        const loader = setInterval(() => { p += 20; document.getElementById('bar').style.width = p + '%'; if(p >= 100) document.getElementById('loader').style.opacity = 0; setTimeout(() => document.getElementById('loader').style.display = 'none', 500); }, 300);
+        // 1. Dynamic Boot Sequence Simulation
+        const bootStatuses = ["Waking up Node...", "Mapping void arrays...", "Injecting GitHub Node...", "Nexus Established!"];
+        let currentProgress = 0;
+        let statusIndex = 0;
 
-        // 2. Data Hardware (Real-time di Browser)
-        if (navigator.getBattery) { navigator.getBattery().then(b => { document.getElementById('batt').innerText = Math.round(b.level * 100); }); }
-        document.getElementById('ram').innerText = navigator.deviceMemory || 'N/A';
-        document.getElementById('cpu').innerText = navigator.hardwareConcurrency || 'N/A';
-        fetch('https://ipapi.co/json/').then(r => r.json()).then(d => { document.getElementById('loc').innerText = d.city; });
+        const loaderInterval = setInterval(() => {
+            currentProgress += 10;
+            document.getElementById('bar').style.width = currentProgress + '%';
+            
+            if (currentProgress % 30 === 0 && statusIndex < bootStatuses.length - 1) {
+                statusIndex++;
+                document.getElementById('boot-status').innerText = bootStatuses[statusIndex];
+            }
 
-        // 3. Real-time GitHub Fetch (Otomatis ambil data terbaru tiap buka web)
-        const USERNAME = 'Novalindo'; // GANTI PAKE USERNAME GITHUB LU
-        fetch(`https://api.github.com/users/${USERNAME}/repos?sort=updated`)
-            .then(res => res.json())
-            .then(repos => {
-                const list = document.getElementById('repo-list');
-                repos.forEach(r => {
-                    list.innerHTML += `
-                        <div class="void-glass p-4 rounded hover:border-purple-500 transition cursor-pointer" onclick="window.open('${r.html_url}')">
-                            <h3 class="text-purple-400 font-bold uppercase">${r.name}</h3>
-                            <p class="text-xs opacity-60 mt-1">${r.description || 'No Description'}</p>
-                            <span class="text-[10px] mt-2 block opacity-40">LANG: ${r.language || 'Unknown'}</span>
+            if (currentProgress >= 100) {
+                clearInterval(loaderInterval);
+                const loaderNode = document.getElementById('loader');
+                loaderNode.style.opacity = 0;
+                setTimeout(() => loaderNode.style.display = 'none', 700);
+            }
+        }, 150);
+
+        // 2. Client Side Telemetry API Data Hook
+        if (navigator.getBattery) { 
+            navigator.getBattery().then(batteryObject => { 
+                document.getElementById('batt').innerText = Math.round(batteryObject.level * 100); 
+            }); 
+        }
+        document.getElementById('ram').innerText = navigator.deviceMemory || '8';
+        document.getElementById('cpu').innerText = navigator.hardwareConcurrency || '8';
+        
+        // Location Fetch via IP API
+        fetch('https://ipapi.co/json/')
+            .then(response => response.json())
+            .then(data => { 
+                document.getElementById('loc').innerText = data.city || "Unknown Node"; 
+            })
+            .catch(() => { document.getElementById('loc').innerText = "Offline Node"; });
+
+        // 3. Real-time REST Connection to GitHub Server
+        const TARGET_USER = 'By-Void-X'; // Kunci Akun GitHub Kamu
+        
+        fetch(`https://api.github.com/users/${TARGET_USER}/repos?sort=updated&per_page=10`)
+            .then(res => {
+                if(!res.ok) throw new Error("Gagal mengambil data");
+                return res.json();
+            })
+            .then(repositories => {
+                const listContainer = document.getElementById('repo-list');
+                listContainer.innerHTML = ''; // Clear fallback states
+                
+                if (repositories.length === 0) {
+                    listContainer.innerHTML = `<div class="col-span-2 text-center py-12 opacity-40 font-space">Tidak ada repositori publik ditemukan.</div>`;
+                    return;
+                }
+
+                repositories.forEach(repo => {
+                    // Logic filtering button types dynamically based on language / files
+                    const hasLiveApp = repo.has_pages ? true : false;
+                    const actionButton = hasLiveApp 
+                        ? `<a href="https://${TARGET_USER}.github.io/${repo.name}" target="_blank" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 rounded-lg text-white font-space text-xs font-bold transition">LAUNCH WEB</a>`
+                        : `<span class="px-3 py-1.5 bg-white/5 rounded-lg opacity-40 font-space text-[10px] tracking-wider uppercase">${repo.language || 'SOURCE CODE'}</span>`;
+
+                    listContainer.innerHTML += `
+                        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between h-48">
+                            <div>
+                                <div class="flex justify-between items-start">
+                                    <h3 class="text-lg font-bold tracking-tight text-white font-space truncate max-w-[70%]">${repo.name}</h3>
+                                    ${actionButton}
+                                </div>
+                                <p class="text-xs opacity-60 mt-3 line-clamp-2">${repo.description || 'No descriptive summary written for this repository data node.'}</p>
+                            </div>
+                            <div class="flex justify-between items-center mt-4 border-t border-white/5 pt-3">
+                                <span class="text-[10px] tracking-widest opacity-40 font-space uppercase">STARS: ${repo.stargazers_count}</span>
+                                <a href="${repo.html_url}" target="_blank" class="text-xs text-purple-400 hover:text-purple-300 font-semibold font-space tracking-wide flex items-center">
+                                    VIEW REPO <span class="ml-1">→</span>
+                                </a>
+                            </div>
                         </div>
                     `;
                 });
+            })
+            .catch(err => {
+                document.getElementById('repo-list').innerHTML = `
+                    <div class="col-span-2 text-center py-12 text-red-400 font-space text-xs">
+                        [ERROR_FAILED_TO_SYNC_GITHUB_NODES]: Periksa koneksi atau limit API.
+                    </div>`;
             });
+
+        // 4. Interface State Light / Dark Toggle Engine
+        function toggleTheme() { 
+            const isLight = document.body.classList.toggle('light-mode'); 
+            document.getElementById('theme-icon').innerText = isLight ? '☀️' : '🌙';
+        }
     </script>
 </body>
 </html>
