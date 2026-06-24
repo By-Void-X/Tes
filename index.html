@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VOID OS v4.00 // DUAL_ACCESS_UPGRADE</title>
+    <title>VOID OS v4.20 // LIVE_LIMIT_TRACKER</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;800;900&display=swap');
@@ -104,15 +104,15 @@
 
     <div id="login-screen">
         <div class="max-w-md w-full px-6 text-left space-y-4">
-            <div class="font-cyber font-black text-xs text-purple-500 tracking-widest">// VOID_OS INTERFACE INITIALIZER v4.00</div>
+            <div class="font-cyber font-black text-xs text-purple-500 tracking-widest">// VOID_OS INTERFACE INITIALIZER v4.20</div>
             <div class="h-32 bg-black/80 border border-purple-950 p-3 rounded font-mono text-[9px] text-zinc-500 overflow-hidden space-y-1" id="login-logs">
-                <div>[SYSTEM] Mapped memory allocation arrays... OK</div>
+                <div>[SYSTEM] Boot sequence initiated... OK</div>
             </div>
             <div class="w-full bg-zinc-900 h-2.5 rounded overflow-hidden border border-zinc-800 relative">
                 <div id="login-progress" class="bg-gradient-to-r from-purple-600 to-cyan-400 h-full w-0 transition-all duration-100"></div>
             </div>
             <div class="flex justify-between items-center text-[10px] font-mono tracking-wider">
-                <span class="text-zinc-500">GATEWAY_STATUS: <span id="login-txt-status" class="text-purple-400 animate-pulse">DECRYPTING_TOKEN</span></span>
+                <span class="text-zinc-500">GATEWAY: <span id="login-txt-status" class="text-purple-400 animate-pulse">DECRYPTING</span></span>
                 <span id="login-percent" class="text-cyan-400 font-bold">0%</span>
             </div>
         </div>
@@ -123,7 +123,7 @@
     <div id="main-content" class="max-w-4xl mx-auto px-4 pt-6 hidden opacity-0 transition-opacity duration-700">
         
         <header class="cyber-panel p-5 rounded-xl mb-6 flex items-center gap-4">
-            <img id="gh-avatar" src="" class="w-16 h-16 rounded-lg border-2 border-purple-500 shadow-lg shadow-purple-500/20 bg-zinc-900 object-cover">
+            <img id="gh-avatar" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-16 h-16 rounded-lg border-2 border-purple-500 shadow-lg shadow-purple-500/20 bg-zinc-900 object-cover">
             <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between border-b border-white/5 pb-2">
                     <div class="flex items-center gap-2 truncate">
@@ -131,9 +131,12 @@
                         <h1 id="gh-name" class="font-cyber font-black tracking-tight text-lg text-purple-400 truncate">SYNCING...</h1>
                     </div>
                 </div>
-                <p id="gh-bio" class="text-[11px] opacity-60 mt-2 font-mono leading-relaxed truncate">Securing core interface connection...</p>
+                <p id="gh-bio" class="text-[11px] opacity-60 mt-2 font-mono leading-relaxed truncate">Establishing connection...</p>
                 <div class="flex gap-2 mt-2 items-center justify-between flex-wrap">
                     <span class="text-[9px] bg-black/60 text-purple-300 px-2 py-0.5 rounded border border-purple-900/40 font-cyber">STORAGE_REPOS: <span id="repo-count" class="font-bold">0</span></span>
+                    
+                    <span class="text-[9px] bg-black/60 text-cyan-300 px-2 py-0.5 rounded border border-cyan-900/40 font-cyber">API_LIMIT: <span id="hd-api-limit" class="font-bold text-cyan-400">--/--</span></span>
+                    
                     <button onclick="cycleTheme()" class="text-[8px] bg-zinc-900/90 text-zinc-300 px-2 py-0.5 rounded border border-zinc-700 hover:text-white font-cyber transition-all"> COLOR_MATRIX</button>
                 </div>
             </div>
@@ -161,7 +164,9 @@
                 <button id="back-btn" class="hidden text-[10px] bg-purple-900/60 border border-purple-500 px-3 py-1 rounded font-cyber" onclick="exitFolderView()"> BACK</button>
             </div>
             
-            <div id="repo-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+            <div id="repo-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="col-span-2 text-center text-xs font-mono text-zinc-500 py-4" id="repo-loader">Mencari data ke satelit GitHub...</div>
+            </div>
             
             <div id="folder-explorer" class="matrix-folder-box p-4 rounded-xl hidden">
                 <div class="mb-4 flex justify-between items-center">
@@ -208,16 +213,16 @@
             const progressEl = document.getElementById('login-progress');
             const percentEl = document.getElementById('login-percent');
             const statusTxt = document.getElementById('login-txt-status');
-            const logs = ["[NET] Connecting to proxy gateway...","[SECURE] Verifying SSH authentication token...","[API] Injecting user data from cloud...","[KERNEL] Initializing Matrix Render...","[SUCCESS] Credentials Accepted. Launching VOID_OS..."];
+            const logs = ["[NET] Proxy gateway active...","[SECURE] Checking rate limits...","[API] Establishing secure handshake...","[KERNEL] Rendering nodes...","[SUCCESS] System Ready."];
             let progress = 0; let logIdx = 0;
             const interval = setInterval(() => {
-                progress += Math.floor(Math.random() * 8) + 4;
+                progress += Math.floor(Math.random() * 12) + 5;
                 if(progress > 100) progress = 100;
                 progressEl.style.width = progress + '%'; percentEl.innerText = progress + '%';
-                if (progress > 25 && logIdx == 0) { logsEl.innerHTML += `<div>${logs[0]}</div>`; logIdx++; }
-                if (progress > 50 && logIdx == 1) { logsEl.innerHTML += `<div>${logs[1]}</div>`; statusTxt.innerText = 'FETCHING_GITHUB'; logIdx++; }
-                if (progress > 70 && logIdx == 2) { logsEl.innerHTML += `<div>${logs[2]}</div>`; logIdx++; }
-                if (progress > 85 && logIdx == 3) { logsEl.innerHTML += `<div>${logs[3]}</div>`; statusTxt.innerText = 'DECRYPT_SUCCESS'; logIdx++; }
+                if (progress > 20 && logIdx == 0) { logsEl.innerHTML += `<div>${logs[0]}</div>`; logIdx++; }
+                if (progress > 45 && logIdx == 1) { logsEl.innerHTML += `<div>${logs[1]}</div>`; statusTxt.innerText = 'FETCHING_DATA'; logIdx++; }
+                if (progress > 65 && logIdx == 2) { logsEl.innerHTML += `<div>${logs[2]}</div>`; logIdx++; }
+                if (progress > 85 && logIdx == 3) { logsEl.innerHTML += `<div>${logs[3]}</div>`; statusTxt.innerText = 'BYPASS_OK'; logIdx++; }
                 if (progress === 100) {
                     clearInterval(interval); logsEl.innerHTML += `<div class="text-green-400">${logs[4]}</div>`;
                     setTimeout(() => {
@@ -225,7 +230,7 @@
                         setTimeout(() => { scr.style.display = 'none'; const main = document.getElementById('main-content'); main.classList.remove('hidden'); setTimeout(() => main.style.opacity = '1', 50); }, 600);
                     }, 800);
                 }
-            }, 120);
+            }, 100);
         }
         window.addEventListener('DOMContentLoaded', initLoginSequence);
 
@@ -242,9 +247,26 @@
             if (viewId !== 'project') exitFolderView();
         }
 
+        // BACKGROUND EFFECT ANIMATION
         const canvas = document.getElementById('bg-canvas'); const ctx = canvas.getContext('2d');
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize); resize();
+        
+        const letters = "01".split(""); const fontSize = 10; const columns = canvas.width / fontSize; const drops = [];
+        for(let x = 0; x < columns; x++) drops[x] = 1;
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(2, 1, 5, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = currentThemeIdx === 1 ? "#00ff66" : "#bf5af2";
+            ctx.font = fontSize + "px 'Fira Code', monospace"; ctx.globalAlpha = 0.2;
+            for(let i = 0; i < drops.length; i++) {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
 
         setInterval(() => {
             const d = new Date();
@@ -252,38 +274,107 @@
             document.getElementById('digital-date').innerText = d.toLocaleDateString('id-ID');
         }, 1000);
 
-        const monitorItems = [ { id: 'm-batt', label: '01_BATTERY', val: '99%' }, { id: 'm-cpu', label: '02_CPU_CORES', val: navigator.hardwareConcurrency || '8' }, { id: 'm-ram', label: '03_MEMORY_NODE', val: (navigator.deviceMemory || '6') + ' GB' }, { id: 'm-online', label: '04_NET_STATE', val: 'CONNECTED' } ];
+        // MONITOR DATA DENGAN RATE LIMIT BARU (6 KOTAK PAS)
+        const monitorItems = [ 
+            { id: 'm-batt', label: '01_BATTERY', val: '99%' }, 
+            { id: 'm-cpu', label: '02_CPU_CORES', val: navigator.hardwareConcurrency || '8' }, 
+            { id: 'm-ram', label: '03_MEMORY_NODE', val: (navigator.deviceMemory || '6') + ' GB' }, 
+            { id: 'm-online', label: '04_NET_STATE', val: navigator.onLine ? 'CONNECTED' : 'OFFLINE' },
+            { id: 'm-api', label: '05_GH_RATE_LIMIT', val: '-- / --' }, // Injeksi data sisa request disini
+            { id: 'm-ver', label: '06_SYS_VERSION', val: 'v4.20' }
+        ];
         const mGrid = document.getElementById('monitor-grid');
         monitorItems.forEach(i => mGrid.innerHTML += `<div class="cyber-panel p-3 rounded-lg"><div class="text-[9px] opacity-40 font-cyber">${i.label}</div><div id="${i.id}" class="text-sm font-bold text-purple-400 font-cyber mt-1">${i.val}</div></div>`);
 
-        fetch(`https://api.github.com/users/${TARGET_GH_USER}`).then(r => r.json()).then(u => {
-            document.getElementById('gh-name').innerText = (u.name || u.login).toUpperCase();
-            document.getElementById('repo-count').innerText = u.public_repos;
-            document.getElementById('gh-avatar').src = u.avatar_url;
-        });
+        // ==========================================
+        // FUNGSI UTAMA EXTRAK INTERSEPSI RATE LIMIT GITHUB
+        // ==========================================
+        function captureRateLimits(headers) {
+            const limit = headers.get('X-RateLimit-Limit');
+            const remaining = headers.get('X-RateLimit-Remaining');
+            
+            if (limit && remaining) {
+                // Update UI Header
+                const hdLimit = document.getElementById('hd-api-limit');
+                hdLimit.innerText = `${remaining}/${limit}`;
+                
+                // Update UI Dashboard Monitor
+                const dashLimit = document.getElementById('m-api');
+                dashLimit.innerText = `${remaining} / ${limit}`;
+                
+                // Cek Kritis (Di bawah 15 request sisa)
+                if (parseInt(remaining) <= 15) {
+                    hdLimit.className = "font-bold text-red-500 animate-pulse";
+                    dashLimit.className = "text-sm font-bold text-red-500 font-cyber mt-1 animate-pulse";
+                } else {
+                    hdLimit.className = "font-bold text-cyan-400";
+                    dashLimit.className = "text-sm font-bold text-cyan-400 font-cyber mt-1";
+                }
+            }
+        }
 
-        fetch(`https://api.github.com/users/${TARGET_GH_USER}/repos?sort=updated`).then(r => r.json()).then(repos => {
-            const grid = document.getElementById('repo-grid'); grid.innerHTML = '';
-            repos.forEach(repo => {
-                grid.innerHTML += `
-                    <div class="cyber-panel p-4 rounded-xl folder-item cursor-pointer flex flex-col justify-between h-36" onclick="enterFolderView('${repo.name}')">
-                        <div>
-                            <h3 class="text-purple-400 font-cyber font-bold text-xs truncate tracking-wide">// ${repo.name.toUpperCase()}</h3>
-                            <div class="mt-3 font-mono text-[9px] text-zinc-400 space-y-1">
-                                <div class="flex items-center gap-1.5"><span class="opacity-50">[STATUS] :</span> <span class="matrix-status"></span></div>
-                                <div class="truncate"><span class="opacity-40">[PATH]   :</span> /sys/nodes/byvoid/${repo.name.toLowerCase()}</div>
+        // FETCH USER PROFILE
+        fetch(`https://api.github.com/users/${TARGET_GH_USER}`)
+            .then(r => {
+                captureRateLimits(r.headers); // Tangkap sisa jatah data limit
+                if(!r.ok) throw new Error("API Limit Reached");
+                return r.json();
+            })
+            .then(u => {
+                document.getElementById('gh-name').innerText = (u.name || u.login || TARGET_GH_USER).toUpperCase();
+                document.getElementById('repo-count').innerText = u.public_repos || 0;
+                document.getElementById('gh-avatar').src = u.avatar_url;
+                if(u.bio) document.getElementById('gh-bio').innerText = u.bio;
+            })
+            .catch(err => {
+                document.getElementById('gh-name').innerText = TARGET_GH_USER.toUpperCase() + ' (LIMIT)';
+                document.getElementById('gh-bio').innerText = "GitHub API Rate Limit exceeded. Menunggu reset...";
+                document.getElementById('gh-avatar').src = `https://ui-avatars.com/api/?name=V+X&background=020105&color=bf5af2`; 
+            });
+
+        // FETCH LIST REPOSITORY
+        fetch(`https://api.github.com/users/${TARGET_GH_USER}/repos?sort=updated`)
+            .then(r => {
+                captureRateLimits(r.headers); // Tangkap sisa jatah data limit
+                if(!r.ok) throw new Error("API Limit Reached");
+                return r.json();
+            })
+            .then(repos => {
+                const grid = document.getElementById('repo-grid'); grid.innerHTML = '';
+                if(repos.length === 0) {
+                    grid.innerHTML = '<div class="col-span-2 text-zinc-500 text-xs font-mono py-4">Tidak ada repository publik.</div>';
+                    return;
+                }
+                repos.forEach(repo => {
+                    grid.innerHTML += `
+                        <div class="cyber-panel p-4 rounded-xl folder-item cursor-pointer flex flex-col justify-between h-36" onclick="enterFolderView('${repo.name}')">
+                            <div>
+                                <h3 class="text-purple-400 font-cyber font-bold text-xs truncate tracking-wide">// ${repo.name.toUpperCase()}</h3>
+                                <div class="mt-3 font-mono text-[9px] text-zinc-400 space-y-1">
+                                    <div class="flex items-center gap-1.5"><span class="opacity-50">[STATUS] :</span> <span class="matrix-status"></span></div>
+                                    <div class="truncate"><span class="opacity-40">[PATH]   :</span> /sys/nodes/byvoid/${repo.name.toLowerCase()}</div>
+                                </div>
+                            </div>
+                            <div class="text-[9px] border-t border-white/5 pt-1.5 flex justify-between items-center opacity-70">
+                                <span class="bg-purple-950/40 text-purple-300 px-1.5 py-0.5 rounded border border-purple-800/40 font-mono text-[8px]">${repo.language || 'SYS'}</span>
+                                <span class="text-cyan-400 font-bold font-cyber tracking-wider text-[9px]">INSPECT </span>
                             </div>
                         </div>
-                        <div class="text-[9px] border-t border-white/5 pt-1.5 flex justify-between items-center opacity-70">
-                            <span class="bg-purple-950/40 text-purple-300 px-1.5 py-0.5 rounded border border-purple-800/40 font-mono text-[8px]">${repo.language || 'SOURCE'}</span>
-                            <span class="text-cyan-400 font-bold font-cyber tracking-wider text-[9px]">INSPECT </span>
-                        </div>
+                    `;
+                });
+            })
+            .catch(err => {
+                const grid = document.getElementById('repo-grid'); 
+                grid.innerHTML = `
+                    <div class="col-span-2 p-4 bg-red-950/40 border border-red-500/50 rounded-lg text-red-400 text-xs font-mono leading-relaxed">
+                        <strong>[ERROR_CODE_403]: GITHUB API RATE LIMIT EXCEEDED.</strong><br><br>
+                        Server mendeteksi sisa token di monitor atas sudah menyentuh angka 0/60.<br><br>
+                        <em>Solusi: Rehat sejenak (maksimal 1 jam) tanpa mereload web ini biar jatah gratisan dari satelit GitHub di-reset kembali.</em>
                     </div>
                 `;
             });
-        });
 
-        // VIEW FOLDER DENGAN DUA TOMBOL: OPEN CODE & OPEN WEB
+        // VIEW FILE & FOLDER INTERNA
         function enterFolderView(repoName) {
             document.getElementById('repo-grid').style.display = 'none';
             document.getElementById('folder-explorer').style.display = 'block';
@@ -294,15 +385,15 @@
             fNode.innerHTML = '<div class="text-[10px] text-green-400 animate-pulse font-mono font-bold text-center py-4">SCANNING_DIRECTORY_NODES...</div>';
 
             fetch(`https://api.github.com/repos/${TARGET_GH_USER}/${repoName}/contents`)
-                .then(r => r.json())
+                .then(r => {
+                    captureRateLimits(r.headers); // Tangkap sisa jatah data limit tiap buka folder
+                    if(!r.ok) throw new Error("Folder Limit Reached");
+                    return r.json();
+                })
                 .then(res => {
-                    fNode.innerHTML = '';
-                    if(!Array.isArray(res)) return;
+                    fNode.innerHTML = ''; if(!Array.isArray(res)) return;
                     res.forEach(item => {
-                        // URL untuk file mentah/kode di GitHub
                         const codeUrl = item.html_url;
-                        
-                        // URL untuk versi render Web (Asumsi pakai GitHub Pages)
                         const webUrl = `https://${TARGET_GH_USER.toLowerCase()}.github.io/${repoName}/${item.path}`;
 
                         fNode.innerHTML += `
@@ -311,15 +402,16 @@
                                     <span class="text-green-400 opacity-80">${item.type === 'dir' ? '' : ''}</span>
                                     <span class="text-zinc-200 tracking-wide font-semibold truncate">${item.name}</span>
                                 </span>
-                                
                                 <div class="flex items-center gap-2 shrink-0">
                                     <button onclick="window.open('${codeUrl}', '_blank')" class="text-[9px] bg-zinc-900/60 border border-zinc-700 text-zinc-300 px-3 py-1.5 rounded font-cyber tracking-widest font-bold hover:bg-zinc-700 hover:text-white transition-all"> CODE</button>
-                                    
                                     <button onclick="window.open('${webUrl}', '_blank')" class="text-[9px] bg-cyan-950/40 border border-cyan-700 text-cyan-400 px-3 py-1.5 rounded font-cyber tracking-widest font-bold hover:bg-cyan-500 hover:text-black transition-all"> WEB</button>
                                 </div>
                             </div>
                         `;
                     });
+                })
+                .catch(err => {
+                    fNode.innerHTML = '<div class="text-[10px] text-red-500 font-mono font-bold text-center py-4">[ERROR] RATE LIMIT PADA FOLDER. COBA NANTI.</div>';
                 });
         }
 
