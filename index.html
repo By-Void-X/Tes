@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VOID OS v4.20 // LIVE_LIMIT_TRACKER</title>
+    <title>VOID OS v5.55 // LIVE_LIMIT_TRACKER</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;800;900&display=swap');
@@ -280,7 +280,7 @@
             { id: 'm-cpu', label: '02_CPU_CORES', val: navigator.hardwareConcurrency || '8' }, 
             { id: 'm-ram', label: '03_MEMORY_NODE', val: (navigator.deviceMemory || '6') + ' GB' }, 
             { id: 'm-online', label: '04_NET_STATE', val: navigator.onLine ? 'CONNECTED' : 'OFFLINE' },
-            { id: 'm-api', label: '05_GH_RATE_LIMIT', val: '-- / --' }, // Injeksi data sisa request disini
+            { id: 'm-api', label: '05_GH_RATE_LIMIT', val: '-- / --' },
             { id: 'm-ver', label: '06_SYS_VERSION', val: 'v4.20' }
         ];
         const mGrid = document.getElementById('monitor-grid');
@@ -294,15 +294,12 @@
             const remaining = headers.get('X-RateLimit-Remaining');
             
             if (limit && remaining) {
-                // Update UI Header
                 const hdLimit = document.getElementById('hd-api-limit');
                 hdLimit.innerText = `${remaining}/${limit}`;
                 
-                // Update UI Dashboard Monitor
                 const dashLimit = document.getElementById('m-api');
                 dashLimit.innerText = `${remaining} / ${limit}`;
                 
-                // Cek Kritis (Di bawah 15 request sisa)
                 if (parseInt(remaining) <= 15) {
                     hdLimit.className = "font-bold text-red-500 animate-pulse";
                     dashLimit.className = "text-sm font-bold text-red-500 font-cyber mt-1 animate-pulse";
@@ -316,7 +313,7 @@
         // FETCH USER PROFILE
         fetch(`https://api.github.com/users/${TARGET_GH_USER}`)
             .then(r => {
-                captureRateLimits(r.headers); // Tangkap sisa jatah data limit
+                captureRateLimits(r.headers);
                 if(!r.ok) throw new Error("API Limit Reached");
                 return r.json();
             })
@@ -332,27 +329,24 @@
                 document.getElementById('gh-avatar').src = `https://ui-avatars.com/api/?name=V+X&background=020105&color=bf5af2`; 
             });
 
-        // FETCH LIST REPOSITORY
-        fetch(`https://api.github.com/users/${TARGET_GH_USER}/repos?sort=updated`)
-            .then(r => {
-                captureRateLimits(r.headers); // Tangkap sisa jatah data limit
-                if(!r.ok) throw new Error("API Limit Reached");
-                return r.json();
-            })
-            .then(repos => {
-                const grid = document.getElementById('repo-grid'); grid.innerHTML = '';
-                if(repos.length === 0) {
-                    grid.innerHTML = '<div class="col-span-2 text-zinc-500 text-xs font-mono py-4">Tidak ada repository publik.</div>';
-                    return;
-                }
-                repos.forEach(repo => {
+        // ==========================================
+        // FETCH LIST REPOSITORY - VERSI GIST TERBARU
+        // ==========================================
+        fetch('https://gist.githubusercontent.com/By-Void-X/5af7bbc1a87689fe076de091c6cf8a72/raw/9f173403c542afbb41d5d77409e9edfdd061785f/Project.json')
+            .then(r => r.json())
+            .then(data => {
+                const grid = document.getElementById('repo-grid');
+                grid.innerHTML = '';
+                document.getElementById('repo-count').innerText = data.length;
+                
+                data.forEach(repo => {
                     grid.innerHTML += `
-                        <div class="cyber-panel p-4 rounded-xl folder-item cursor-pointer flex flex-col justify-between h-36" onclick="enterFolderView('${repo.name}')">
+                        <div class="cyber-panel p-4 rounded-xl folder-item cursor-pointer flex flex-col justify-between h-36" onclick="enterFolderView('${repo.nama}')">
                             <div>
-                                <h3 class="text-purple-400 font-cyber font-bold text-xs truncate tracking-wide">// ${repo.name.toUpperCase()}</h3>
+                                <h3 class="text-purple-400 font-cyber font-bold text-xs truncate tracking-wide">// ${repo.nama.toUpperCase()}</h3>
                                 <div class="mt-3 font-mono text-[9px] text-zinc-400 space-y-1">
                                     <div class="flex items-center gap-1.5"><span class="opacity-50">[STATUS] :</span> <span class="matrix-status"></span></div>
-                                    <div class="truncate"><span class="opacity-40">[PATH]   :</span> /sys/nodes/byvoid/${repo.name.toLowerCase()}</div>
+                                    <div class="truncate"><span class="opacity-40">[PATH]   :</span> /sys/nodes/byvoid/${repo.nama.toLowerCase()}</div>
                                 </div>
                             </div>
                             <div class="text-[9px] border-t border-white/5 pt-1.5 flex justify-between items-center opacity-70">
@@ -367,9 +361,8 @@
                 const grid = document.getElementById('repo-grid'); 
                 grid.innerHTML = `
                     <div class="col-span-2 p-4 bg-red-950/40 border border-red-500/50 rounded-lg text-red-400 text-xs font-mono leading-relaxed">
-                        <strong>[ERROR_CODE_403]: GITHUB API RATE LIMIT EXCEEDED.</strong><br><br>
-                        Server mendeteksi sisa token di monitor atas sudah menyentuh angka 0/60.<br><br>
-                        <em>Solusi: Rehat sejenak (maksimal 1 jam) tanpa mereload web ini biar jatah gratisan dari satelit GitHub di-reset kembali.</em>
+                        <strong>[ERROR] GAGAL MEMUAT DATA GIST.</strong><br><br>
+                        Pastikan link Gist lu benar dan bisa diakses.
                     </div>
                 `;
             });
@@ -386,7 +379,7 @@
 
             fetch(`https://api.github.com/repos/${TARGET_GH_USER}/${repoName}/contents`)
                 .then(r => {
-                    captureRateLimits(r.headers); // Tangkap sisa jatah data limit tiap buka folder
+                    captureRateLimits(r.headers);
                     if(!r.ok) throw new Error("Folder Limit Reached");
                     return r.json();
                 })
