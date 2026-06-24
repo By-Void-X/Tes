@@ -6,106 +6,63 @@
     <title>VOID | Project Nexus</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=Inter:wght@300;400;600&display=swap');
-        
-        :root { --bg: #050505; --accent: #a855f7; --text: #e0e0e0; }
-        .light-mode { --bg: #f8fafc; --accent: #7e22ce; --text: #1e293b; }
-        
-        body { background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: 0.3s; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(168, 85, 247, 0.2); }
-        .loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .boot-text { font-family: 'Space Grotesk'; color: var(--accent); }
+        body { background: #000; color: #fff; font-family: 'Courier New', Courier, monospace; overflow-x: hidden; }
+        .void-glass { background: rgba(10, 10, 10, 0.7); border: 1px solid #333; backdrop-filter: blur(10px); }
+        .text-void { color: #a855f7; text-shadow: 0 0 10px #a855f7; }
+        .loading-overlay { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.5s; }
     </style>
 </head>
-<body>
+<body class="p-4 md:p-10">
 
-    <!-- Loading Screen -->
-    <div id="loader" class="loader">
-        <div class="text-center animate-pulse">
-            <h2 class="boot-text text-2xl uppercase tracking-widest">Initializing Void...</h2>
-            <div class="w-64 h-1 bg-gray-800 mt-4"><div id="progress" class="h-full bg-purple-500 w-0"></div></div>
-        </div>
+    <!-- Loading -->
+    <div id="loader" class="loading-overlay">
+        <div class="animate-bounce mb-4 text-void">SYSTEM_INIT_VOID...</div>
+        <div class="w-48 h-1 bg-gray-800"><div id="bar" class="h-full bg-purple-500 w-0 transition-all"></div></div>
     </div>
 
-    <!-- Main App -->
-    <div class="container mx-auto px-6 py-12 max-w-6xl">
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-16">
-            <h1 class="text-3xl font-bold boot-text">VOID<span class="text-white">_NEXUS</span></h1>
-            <button onclick="toggleTheme()" class="px-4 py-2 border border-purple-500 rounded-full hover:bg-purple-500 transition">Mode</button>
-        </header>
-
-        <!-- Dashboard Monitor -->
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-            <div class="glass p-4 rounded-xl text-center"><p class="text-xs opacity-50">BATERAI</p><h3 id="bat-val" class="text-xl">--%</h3></div>
-            <div class="glass p-4 rounded-xl text-center"><p class="text-xs opacity-50">RAM</p><h3 id="ram-val" class="text-xl">-- GB</h3></div>
-            <div class="glass p-4 rounded-xl text-center"><p class="text-xs opacity-50">CPU CORES</p><h3 id="cpu-val" class="text-xl">--</h3></div>
-            <div class="glass p-4 rounded-xl text-center"><p class="text-xs opacity-50">LOKASI</p><h3 class="text-xs mt-2" id="loc-val">Loading...</h3></div>
-        </section>
-
-        <!-- GitHub Repos -->
-        <h2 class="text-2xl font-bold mb-8 boot-text uppercase">Project Archive</h2>
-        <div id="repo-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Repo items injected via JS -->
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold mb-10 text-void uppercase tracking-widest">// Project Nexus</h1>
+        
+        <!-- Dashboard Real-time -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10" id="dash">
+            <div class="void-glass p-4 rounded text-center">BATT: <span id="batt">--</span>%</div>
+            <div class="void-glass p-4 rounded text-center">RAM: <span id="ram">--</span>GB</div>
+            <div class="void-glass p-4 rounded text-center">CPU: <span id="cpu">--</span></div>
+            <div class="void-glass p-4 rounded text-center" id="loc">LOC: Loading...</div>
         </div>
+
+        <!-- Repo List (Otomatis muncul dari GitHub) -->
+        <div id="repo-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </div>
 
     <script>
-        // Init Loading
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 10;
-            document.getElementById('progress').style.width = progress + '%';
-            if(progress >= 100) document.getElementById('loader').style.display = 'none';
-        }, 200);
+        // 1. Loading Animation
+        let p = 0;
+        const loader = setInterval(() => { p += 20; document.getElementById('bar').style.width = p + '%'; if(p >= 100) document.getElementById('loader').style.opacity = 0; setTimeout(() => document.getElementById('loader').style.display = 'none', 500); }, 300);
 
-        // Hardware Data
-        async function getSystemInfo() {
-            // Battery
-            if (navigator.getBattery) {
-                const b = await navigator.getBattery();
-                document.getElementById('bat-val').innerText = Math.round(b.level * 100) + '%';
-            }
-            // Memory & CPU
-            document.getElementById('ram-val').innerText = navigator.deviceMemory || '4';
-            document.getElementById('cpu-val').innerText = navigator.hardwareConcurrency || '4';
-            // IP Location
-            fetch('https://ipapi.co/json/').then(r => r.json()).then(d => {
-                document.getElementById('loc-val').innerText = d.city + ', ' + d.country_name;
+        // 2. Data Hardware (Real-time di Browser)
+        if (navigator.getBattery) { navigator.getBattery().then(b => { document.getElementById('batt').innerText = Math.round(b.level * 100); }); }
+        document.getElementById('ram').innerText = navigator.deviceMemory || 'N/A';
+        document.getElementById('cpu').innerText = navigator.hardwareConcurrency || 'N/A';
+        fetch('https://ipapi.co/json/').then(r => r.json()).then(d => { document.getElementById('loc').innerText = d.city; });
+
+        // 3. Real-time GitHub Fetch (Otomatis ambil data terbaru tiap buka web)
+        const USERNAME = 'Novalindo'; // GANTI PAKE USERNAME GITHUB LU
+        fetch(`https://api.github.com/users/${USERNAME}/repos?sort=updated`)
+            .then(res => res.json())
+            .then(repos => {
+                const list = document.getElementById('repo-list');
+                repos.forEach(r => {
+                    list.innerHTML += `
+                        <div class="void-glass p-4 rounded hover:border-purple-500 transition cursor-pointer" onclick="window.open('${r.html_url}')">
+                            <h3 class="text-purple-400 font-bold uppercase">${r.name}</h3>
+                            <p class="text-xs opacity-60 mt-1">${r.description || 'No Description'}</p>
+                            <span class="text-[10px] mt-2 block opacity-40">LANG: ${r.language || 'Unknown'}</span>
+                        </div>
+                    `;
+                });
             });
-        }
-
-        // GitHub API
-        async function fetchRepos() {
-            const username = 'YOUR_GITHUB_USERNAME'; // Ganti dengan username-mu
-            const res = await fetch(`https://api.github.com/users/${username}/repos?sort=updated`);
-            const repos = await res.json();
-            const grid = document.getElementById('repo-grid');
-            repos.slice(0, 6).forEach(repo => {
-                grid.innerHTML += `
-                    <div class="glass p-6 rounded-xl hover:border-white cursor-pointer transition">
-                        <h3 class="font-bold mb-2">${repo.name}</h3>
-                        <p class="text-sm opacity-70 mb-4">${repo.description || 'No description'}</p>
-                        <a href="${repo.html_url}" target="_blank" class="text-purple-400 hover:underline">View Repository →</a>
-                    </div>
-                `;
-            });
-        }
-
-        function toggleTheme() { document.body.classList.toggle('light-mode'); }
-
-        getSystemInfo();
-        fetchRepos();
     </script>
 </body>
 </html>
-```eof
-
-### Cara Menggunakan:
-1.  **Salin kode** di atas.
-2.  Buka aplikasi *Notepad* atau *VS Code* di komputermu.
-3.  Tempel (paste) kodenya dan simpan dengan nama `index.html`.
-4.  **Penting:** Cari baris `const username = 'YOUR_GITHUB_USERNAME';` dan ganti dengan username GitHub-mu.
-5.  Klik dua kali file `index.html` tersebut untuk membukanya di browser.
-
-Web ini siap di-upload ke Vercel atau GitHub Pages. Kalau kamu mau menambah fitur *Command Palette* atau terminal virtual seperti yang saya sarankan tadi, bilang saja ya!
