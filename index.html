@@ -3,227 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VOID // Project Nexus</title>
+    <title>VOID // Core OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Share+Tech+Mono&display=swap');
         
         :root {
-            --bg-void: radial-gradient(circle at 50% 50%, #0d0814 0%, #030206 100%);
-            --card-bg: rgba(15, 10, 25, 0.4);
-            --border-glow: rgba(168, 85, 247, 0.25);
-            --text-main: #f3e8ff;
-            --text-glow: 0 0 15px rgba(168, 85, 247, 0.6);
+            --bg-void: #020204;
+            --panel: rgba(10, 8, 16, 0.75);
+            --neon: #8b5cf6;
+            --neon-glow: 0 0 20px rgba(139, 92, 246, 0.6);
+            --text: #e2e8f0;
         }
 
         .light-mode {
-            --bg-void: radial-gradient(circle at 50% 50%, #f8fafc 0%, #e2e8f0 100%);
-            --card-bg: rgba(255, 255, 255, 0.75);
-            --border-glow: rgba(126, 34, 206, 0.2);
-            --text-main: #1e1b4b;
-            --text-glow: none;
+            --bg-void: #f1f5f9;
+            --panel: rgba(255, 255, 255, 0.85);
+            --neon: #6d28d9;
+            --neon-glow: 0 0 10px rgba(109, 40, 217, 0.2);
+            --text: #0f172a;
         }
 
         body {
-            background: var(--bg-void);
-            color: var(--text-main);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            transition: all 0.5s ease;
-            min-height: screen;
+            background-color: var(--bg-void);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.4s ease;
         }
 
-        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        .cyber-panel {
+            background: var(--panel);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            backdrop-filter: blur(12px);
+        }
+
+        .active-tab {
+            color: var(--neon);
+            text-shadow: var(--neon-glow);
+            border-top: 3px solid var(--neon);
+        }
+
+        .glitch-text { font-family: 'Share Tech Mono', sans-serif; }
         
-        .glass-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-glow);
-            backdrop-filter: blur(16px);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-in-out; }
 
-        .glass-card:hover {
-            border-color: #a855f7;
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-            transform: translateY(-4px);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .neon-text { text-shadow: var(--text-glow); }
-        
-        /* Custom Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-        ::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 10px; }
     </style>
 </head>
-<body class="overflow-x-hidden selection:bg-purple-500 selection:text-white">
+<body class="pb-24">
 
-    <!-- Loading Screen Dramatis -->
-    <div id="loader" class="fixed inset-0 bg-[#020105] z-50 flex flex-col items-center justify-center transition-all duration-700">
-        <div class="relative flex items-center justify-center">
-            <!-- Outer Core Aura -->
-            <div class="absolute w-32 h-32 bg-purple-600 rounded-full blur-2xl opacity-40 animate-pulse"></div>
-            <!-- Spinning Orb -->
-            <div class="w-16 h-16 border-2 border-t-purple-500 border-r-transparent border-b-purple-500 border-l-transparent rounded-full animate-spin"></div>
-            <div class="absolute font-space text-xs tracking-widest text-purple-400 font-bold">VOID</div>
+    <!-- Loading Screen Dramatis Void Hole -->
+    <div id="loader" class="fixed inset-0 bg-[#000] z-50 flex flex-col items-center justify-center">
+        <div class="relative w-24 h-24 flex items-center justify-center">
+            <div class="absolute inset-0 border-4 border-dashed border-purple-600 rounded-full animate-spin"></div>
+            <div class="w-12 h-12 bg-purple-900 rounded-full blur-sm animate-ping"></div>
         </div>
-        <div class="mt-8 font-space tracking-widest text-sm opacity-60 text-purple-300 uppercase" id="boot-status">Calibrating Nexus Core...</div>
-        <div class="w-48 h-[2px] bg-white/5 mt-4 rounded-full overflow-hidden">
-            <div id="bar" class="h-full bg-purple-500 w-0 transition-all duration-300 shadow-[0_0_10px_#a855f7]"></div>
-        </div>
+        <div class="mt-6 glitch-text text-xl tracking-widest text-purple-400" id="load-msg">CONNECTING_TO_VOID_NEXUS...</div>
     </div>
 
     <!-- Main Container -->
-    <div class="max-w-6xl mx-auto px-4 py-8 md:py-16">
+    <main class="max-w-4xl mx-auto px-4 pt-8">
         
-        <!-- Navbar Header -->
-        <header class="flex justify-between items-center mb-12 md:mb-20">
-            <div>
-                <span class="text-xs font-bold tracking-widest text-purple-500 font-space uppercase animate-pulse">// SYSTEM STATUS: ONLINE</span>
-                <h1 class="text-3xl md:text-4xl font-extrabold font-space tracking-tighter neon-text">VOID<span class="text-purple-500">.NEXUS</span></h1>
+        <!-- TOP PROFILE HEADER -->
+        <div class="cyber-panel p-6 rounded-2xl mb-8 flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-2 text-[10px] opacity-30 glitch-text">CORE_v2.0.26</div>
+            <img id="user-avatar" src="" alt="Profile" class="w-24 h-24 rounded-full border-2 border-purple-500 shadow-[0_0_15px_rgba(139,92,246,0.5)] bg-black">
+            <div class="text-center sm:text-left flex-1">
+                <h1 id="user-name" class="text-2xl font-bold glitch-text text-purple-400">Loading Node...</h1>
+                <p id="user-bio" class="text-xs opacity-60 mt-2">Connecting telemetry sync...</p>
+                <div class="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
+                    <span class="text-[10px] bg-purple-950 text-purple-300 px-2 py-0.5 rounded border border-purple-800">PUBLIC_REPOS: <span id="repo-count">0</span></span>
+                    <button onclick="toggleTheme()" class="text-[10px] bg-zinc-900 text-zinc-400 px-2 py-0.5 rounded border border-zinc-700 hover:text-white">TOGGLE_THEME</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB CONTENT PLACES ================= -->
+
+        <!-- TAB 1: HOME -->
+        <div id="home-tab" class="tab-content active">
+            <div class="cyber-panel p-6 rounded-2xl">
+                <h2 class="text-lg font-bold text-purple-400 mb-4 glitch-text">// WELCOME_TO_VOID_OS</h2>
+                <p class="text-sm leading-relaxed opacity-80">
+                    Ini adalah sistem personal hub milik <strong>Zeen</strong>. Terintegrasi langsung dengan GitHub API untuk pelacakan kode repositori secara otomatis dan dilengkapi telemetry monitoring hardware client-side secara real-time. Gunakan bar navigasi di bawah untuk menjelajah fungsi.
+                </p>
+                <div class="mt-6 p-4 bg-purple-950/20 rounded-xl border border-purple-900/40 text-xs">
+                    <span class="text-purple-400 font-bold">SYSTEM_LOG:</span> Menunggu aksi pengguna... Semua sistem inti berjalan stabil.
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: MONITOR TELEMETRY -->
+        <div id="monitor-tab" class="tab-content">
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="cyber-panel p-4 rounded-xl">
+                    <div class="text-xs opacity-40">BATTERY_STATE</div>
+                    <div class="text-2xl font-bold mt-1 text-purple-400"><span id="batt">--</span>%</div>
+                    <div class="text-[10px] opacity-50 mt-1" id="batt-status">STATUS: UNKNOWN</div>
+                </div>
+                <div class="cyber-panel p-4 rounded-xl">
+                    <div class="text-xs opacity-40">MEMORY_ALLOCATION</div>
+                    <div class="text-2xl font-bold mt-1 text-purple-400"><span id="ram">--</span> GB</div>
+                    <div class="text-[10px] opacity-50 mt-1">AVAILABLE RAM HINT</div>
+                </div>
+                <div class="cyber-panel p-4 rounded-xl">
+                    <div class="text-xs opacity-40">CPU_CORE_THREADS</div>
+                    <div class="text-2xl font-bold mt-1 text-purple-400"><span id="cpu">--</span> Cores</div>
+                    <div class="text-[10px] opacity-50 mt-1">LOGICAL_PROCESSORS</div>
+                </div>
+                <div class="cyber-panel p-4 rounded-xl">
+                    <div class="text-xs opacity-40">NETWORK_LOCATION</div>
+                    <div class="text-sm font-bold mt-2 text-purple-400 truncate" id="loc">Detecting...</div>
+                    <div class="text-[10px] opacity-50 mt-1" id="isp">ISP: Fetching...</div>
+                </div>
+            </div>
+            <div class="cyber-panel p-4 rounded-xl text-xs">
+                <div class="text-purple-400 font-bold mb-2">BROWSER USER_AGENT:</div>
+                <div id="ua" class="opacity-60 break-all">Loading...</div>
+            </div>
+        </div>
+
+        <!-- TAB 3: PROJECT EXPLORER -->
+        <div id="project-tab" class="tab-content">
+            <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-sm font-bold tracking-widest text-purple-400 font-space">// ARCHIVE_NODES</h2>
+                <button id="back-to-repos" class="hidden text-xs bg-purple-900/50 hover:bg-purple-800 px-3 py-1 rounded border border-purple-600 transition" onclick="closeExplorer()">← KEMBALI</button>
             </div>
             
-            <!-- Switch Theme Button -->
-            <button onclick="toggleTheme()" class="glass-card p-3 rounded-xl flex items-center justify-center text-sm font-space font-bold tracking-wider hover:text-purple-400">
-                <span id="theme-icon" class="mr-2">🌙</span> THEME
+            <!-- Repository Master Grid -->
+            <div id="repo-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+
+            <!-- Inside Explorer Folder View -->
+            <div id="file-explorer" class="cyber-panel p-6 rounded-2xl hidden">
+                <h3 id="current-repo-title" class="text-base font-bold text-purple-400 border-b border-purple-900/50 pb-3 mb-4">Repo_Files</h3>
+                <div id="file-list" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- TAB 4: KONTAK -->
+        <div id="kontak-tab" class="tab-content">
+            <div class="cyber-panel p-6 rounded-2xl space-y-4">
+                <h2 class="text-lg font-bold text-purple-400 glitch-text">// TERMINAL_COMMUNICATION</h2>
+                <p class="text-xs opacity-70">Hubungi Core Node admin lewat jalur luar jaringan:</p>
+                <div class="space-y-2 text-sm">
+                    <div class="p-3 bg-white/5 rounded border border-white/5 hover:border-purple-500/50 transition cursor-pointer" onclick="window.open('https://github.com/By-Void-X')">
+                        <span class="text-purple-400">GITHUB:</span> github.com/By-Void-X
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FIXED BOTTOM NAVIGATION BAR BARU -->
+    <nav class="fixed bottom-0 inset-x-0 bg-black/90 border-t-2 border-purple-900/60 backdrop-blur-md z-40">
+        <div class="max-w-md mx-auto flex justify-around items-center h-16">
+            <button onclick="switchTab('home', this)" class="flex flex-col items-center justify-center flex-1 h-full text-zinc-500 hover:text-purple-400 transition-all duration-300 active-tab">
+                <span class="text-lg">🏠</span><span class="text-[10px] mt-0.5 font-bold">Home</span>
             </button>
-        </header>
-
-        <!-- System Monitor Dashboard Component -->
-        <section class="mb-16">
-            <div class="flex items-center space-x-2 mb-6">
-                <div class="w-2 h-2 rounded-full bg-purple-500 animate-ping"></div>
-                <h2 class="text-sm font-bold font-space tracking-widest uppercase opacity-80">Hardware Telemetry</h2>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="dash">
-                <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
-                    <span class="text-xs opacity-40 font-space block mb-1">BATTERY_LEVEL</span>
-                    <span id="batt" class="text-3xl font-extrabold font-space text-purple-400">--</span><span class="text-lg font-space text-purple-400">%</span>
-                </div>
-                <div class="glass-card p-6 rounded-2xl relative overflow-hidden">
-                    <span class="text-xs opacity-40 font-space block mb-1">DEVICE_MEMORY</span>
-                    <span id="ram" class="text-3xl font-extrabold font-space text-purple-400">--</span><span class="text-lg font-space text-purple-400">GB</span>
-                </div>
-                <div class="glass-card p-6 rounded-2xl relative overflow-hidden">
-                    <span class="text-xs opacity-40 font-space block mb-1">CPU_CORES</span>
-                    <span id="cpu" class="text-3xl font-extrabold font-space text-purple-400">--</span><span class="text-sm opacity-40 ml-1 font-space">THREADS</span>
-                </div>
-                <div class="glass-card p-6 rounded-2xl relative overflow-hidden">
-                    <span class="text-xs opacity-40 font-space block mb-1">NODE_LOCATION</span>
-                    <span id="loc" class="text-xl font-bold font-space text-purple-400 block mt-2 truncate">Detecting...</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Repository Display Explorer -->
-        <section class="mb-12">
-            <div class="flex items-center space-x-2 mb-8">
-                <div class="w-2 h-2 rounded-full bg-purple-500"></div>
-                <h2 class="text-sm font-bold font-space tracking-widest uppercase opacity-80">Synced Repositories</h2>
-            </div>
-            
-            <!-- Grid List Target Injection -->
-            <div id="repo-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Data fetched real-time dynamically placed here -->
-            </div>
-        </section>
-    </div>
+            <button onclick="switchTab('monitor', this)" class="flex flex-col items-center justify-center flex-1 h-full text-zinc-500 hover:text-purple-400 transition-all duration-300">
+                <span class="text-lg">🖥️</span><span class="text-[10px] mt-0.5 font-bold">Monitor</span>
+            </button>
+            <button onclick="switchTab('project', this)" class="flex flex-col items-center justify-center flex-1 h-full text-zinc-500 hover:text-purple-400 transition-all duration-300">
+                <span class="text-lg">⟨⟩</span><span class="text-[10px] mt-0.5 font-bold">Project</span>
+            </button>
+            <button onclick="switchTab('kontak', this)" class="flex flex-col items-center justify-center flex-1 h-full text-zinc-500 hover:text-purple-400 transition-all duration-300">
+                <span class="text-lg">✉️</span><span class="text-[10px] mt-0.5 font-bold">Kontak</span>
+            </button>
+        </div>
+    </nav>
 
     <script>
-        // 1. Dynamic Boot Sequence Simulation
-        const bootStatuses = ["Waking up Node...", "Mapping void arrays...", "Injecting GitHub Node...", "Nexus Established!"];
-        let currentProgress = 0;
-        let statusIndex = 0;
+        const USERNAME = 'By-Void-X';
 
-        const loaderInterval = setInterval(() => {
-            currentProgress += 10;
-            document.getElementById('bar').style.width = currentProgress + '%';
+        // 1. Navigation Tab Mechanism 
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active-tab'));
             
-            if (currentProgress % 30 === 0 && statusIndex < bootStatuses.length - 1) {
-                statusIndex++;
-                document.getElementById('boot-status').innerText = bootStatuses[statusIndex];
-            }
-
-            if (currentProgress >= 100) {
-                clearInterval(loaderInterval);
-                const loaderNode = document.getElementById('loader');
-                loaderNode.style.opacity = 0;
-                setTimeout(() => loaderNode.style.display = 'none', 700);
-            }
-        }, 150);
-
-        // 2. Client Side Telemetry API Data Hook
-        if (navigator.getBattery) { 
-            navigator.getBattery().then(batteryObject => { 
-                document.getElementById('batt').innerText = Math.round(batteryObject.level * 100); 
-            }); 
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+            element.classList.add('active-tab');
+            if(tabId !== 'project') closeExplorer();
         }
+
+        // 2. Loading System
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+            }, 1000);
+        });
+
+        // 3. Telemetry Engine Hardware
+        if (navigator.getBattery) {
+            navigator.getBattery().then(b => {
+                updateBattery(b);
+                b.addEventListener('chargingchange', () => updateBattery(b));
+                b.addEventListener('levelchange', () => updateBattery(b));
+            });
+        }
+        function updateBattery(b) {
+            document.getElementById('batt').innerText = Math.round(b.level * 100);
+            document.getElementById('batt-status').innerText = `STATUS: ${b.charging ? 'CHARGING' : 'DISCHARGING'}`;
+        }
+
         document.getElementById('ram').innerText = navigator.deviceMemory || '8';
         document.getElementById('cpu').innerText = navigator.hardwareConcurrency || '8';
-        
-        // Location Fetch via IP API
+        document.getElementById('ua').innerText = navigator.userAgent;
+
         fetch('https://ipapi.co/json/')
-            .then(response => response.json())
-            .then(data => { 
-                document.getElementById('loc').innerText = data.city || "Unknown Node"; 
-            })
-            .catch(() => { document.getElementById('loc').innerText = "Offline Node"; });
+            .then(r => r.json())
+            .then(d => {
+                document.getElementById('loc').innerText = `${d.city}, ${d.region}`;
+                document.getElementById('isp').innerText = `ISP: ${d.org || 'Unknown'}`;
+            }).catch(() => { document.getElementById('loc').innerText = "Klaten, Central Java"; });
 
-        // 3. Real-time REST Connection to GitHub Server
-        const TARGET_USER = 'By-Void-X'; // Kunci Akun GitHub Kamu
-        
-        fetch(`https://api.github.com/users/${TARGET_USER}/repos?sort=updated&per_page=10`)
-            .then(res => {
-                if(!res.ok) throw new Error("Gagal mengambil data");
-                return res.json();
-            })
-            .then(repositories => {
-                const listContainer = document.getElementById('repo-list');
-                listContainer.innerHTML = ''; // Clear fallback states
-                
-                if (repositories.length === 0) {
-                    listContainer.innerHTML = `<div class="col-span-2 text-center py-12 opacity-40 font-space">Tidak ada repositori publik ditemukan.</div>`;
-                    return;
-                }
+        // 4. Fetch GitHub Profile & Repos Global
+        fetch(`https://api.github.com/users/${USERNAME}`)
+            .then(res => res.json())
+            .then(user => {
+                document.getElementById('user-avatar').src = user.avatar_url;
+                document.getElementById('user-name').innerText = user.name || user.login;
+                document.getElementById('user-bio').innerText = user.bio || 'No profile bio configuration initialized.';
+                document.getElementById('repo-count').innerText = user.public_repos;
+            });
 
-                repositories.forEach(repo => {
-                    // Logic filtering button types dynamically based on language / files
-                    const hasLiveApp = repo.has_pages ? true : false;
-                    const actionButton = hasLiveApp 
-                        ? `<a href="https://${TARGET_USER}.github.io/${repo.name}" target="_blank" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 rounded-lg text-white font-space text-xs font-bold transition">LAUNCH WEB</a>`
-                        : `<span class="px-3 py-1.5 bg-white/5 rounded-lg opacity-40 font-space text-[10px] tracking-wider uppercase">${repo.language || 'SOURCE CODE'}</span>`;
-
-                    listContainer.innerHTML += `
-                        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between h-48">
+        fetch(`https://api.github.com/users/${USERNAME}/repos?sort=updated`)
+            .then(res => res.json())
+            .then(repos => {
+                const list = document.getElementById('repo-list');
+                list.innerHTML = '';
+                repos.forEach(r => {
+                    list.innerHTML += `
+                        <div class="cyber-panel p-4 rounded-xl hover:border-purple-500 transition cursor-pointer flex flex-col justify-between h-36" onclick="exploreRepo('${r.name}')">
                             <div>
-                                <div class="flex justify-between items-start">
-                                    <h3 class="text-lg font-bold tracking-tight text-white font-space truncate max-w-[70%]">${repo.name}</h3>
-                                    ${actionButton}
-                                </div>
-                                <p class="text-xs opacity-60 mt-3 line-clamp-2">${repo.description || 'No descriptive summary written for this repository data node.'}</p>
+                                <h3 class="text-purple-400 font-bold truncate text-sm uppercase">${r.name}</h3>
+                                <p class="text-[11px] opacity-60 mt-1 line-clamp-2">${r.description || 'No descriptive context written.'}</p>
                             </div>
-                            <div class="flex justify-between items-center mt-4 border-t border-white/5 pt-3">
-                                <span class="text-[10px] tracking-widest opacity-40 font-space uppercase">STARS: ${repo.stargazers_count}</span>
-                                <a href="${repo.html_url}" target="_blank" class="text-xs text-purple-400 hover:text-purple-300 font-semibold font-space tracking-wide flex items-center">
-                                    VIEW REPO <span class="ml-1">→</span>
-                                </a>
+                            <div class="text-[10px] opacity-40 border-t border-purple-900/30 pt-2 flex justify-between">
+                                <span>LANG: ${r.language || 'MIXED'}</span>
+                                <span class="text-purple-400 font-bold">CLICK TO EXPLORE →</span>
                             </div>
                         </div>
                     `;
                 });
-            })
-            .catch(err => {
-                document.getElementById('repo-list').innerHTML = `
-                    <div class="col-span-2 text-center py-12 text-red-400 font-space text-xs">
-                        [ERROR_FAILED_TO_SYNC_GITHUB_NODES]: Periksa koneksi atau limit API.
-                    </div>`;
             });
 
-        // 4. Interface State Light / Dark Toggle Engine
-        function toggleTheme() { 
-            const isLight = document.body.classList.toggle('light-mode'); 
-            document.getElementById('theme-icon').innerText = isLight ? '☀️' : '🌙';
+        // 5. Repo File Explorer Engine Real-time
+        function exploreRepo(repoName) {
+            document.getElementById('repo-list').style.display = 'none';
+            document.getElementById('file-explorer').style.display = 'block';
+            document.getElementById('back-to-repos').classList.remove('hidden');
+            document.getElementById('current-repo-title').innerText = `// NODE: ${repoName.toUpperCase()} / FILES`;
+
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '<div class="text-xs opacity-50 animate-pulse">Fetching structure array nodes...</div>';
+
+            fetch(`https://api.github.com/repos/${USERNAME}/${repoName}/contents`)
+                .then(res => res.json())
+                .then(files => {
+                    fileList.innerHTML = '';
+                    if(!Array.isArray(files)) {
+                        fileList.innerHTML = '<div class="text-xs text-red-400">[EMPTY_OR_ARCHIVED_NODE]</div>';
+                        return;
+                    }
+                    files.forEach(f => {
+                        const isHtml = f.name.endsWith('.html') || f.name.endsWith('.md');
+                        const viewBtn = isHtml 
+                            ? `<button onclick="event.stopPropagation(); window.open('https://${USERNAME}.github.io/${repoName}/${f.name === 'index.html' ? '' : f.name}')" class="text-[10px] bg-purple-700 hover:bg-purple-600 px-2 py-1 rounded text-white font-bold">BUKA</button>` 
+                            : `<button onclick="event.stopPropagation(); window.open('${f.html_url}')" class="text-[10px] bg-zinc-800 hover:bg-zinc-700 px-2 py-1 rounded text-zinc-400">CODE</button>`;
+                        
+                        const icon = f.type === 'dir' ? '📁' : '📄';
+                        fileList.innerHTML += `
+                            <div class="flex justify-between items-center bg-white/5 p-2 rounded text-xs border border-transparent hover:border-purple-500/20">
+                                <span class="truncate pr-2">${icon} ${f.name}</span>
+                                ${viewBtn}
+                            </div>
+                        `;
+                    });
+                }).catch(() => { fileList.innerHTML = '<div class="text-xs text-red-400">[ERROR_LOADING_TREE]</div>'; });
         }
+
+        function closeExplorer() {
+            document.getElementById('repo-list').style.display = 'grid';
+            document.getElementById('file-explorer').style.display = 'none';
+            document.getElementById('back-to-repos').classList.add('hidden');
+        }
+
+        function toggleTheme() { document.body.classList.toggle('light-mode'); }
     </script>
 </body>
-</html>
+    </html>
