@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOID OS // Overclocked Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@500;800;900&display=swap');
+        
+        :root {
+            --bg-matrix: #030208;
+            --neon-purple: #bf5af2;
+            --neon-cyan: #5ac8fa;
+            --panel-border: rgba(191, 90, 242, 0.3);
+            --panel-bg: rgba(9, 6, 18, 0.85);
+            --glow: 0 0 15px rgba(191, 90, 242, 0.6);
+        }
+
+        .light-mode {
+            --bg-matrix: #f1f5f9;
+            --neon-purple: #7c3aed;
+            --neon-cyan: #0ea5e9;
+            --panel-border: rgba(124, 58, 237, 0.2);
+            --panel-bg: rgba(255, 255, 255, 0.9);
+            --glow: 0 0 10px rgba(124, 58, 237, 0.2);
+        }
+
+        body {
+            background-color: var(--bg-matrix);
+            color: #e2e8f0;
+            font-family: 'Fira Code', monospace;
+            overflow-x: hidden;
+            transition: background 0.4s ease;
+        }
+
+        .font-cyber { font-family: 'Orbitron', sans-serif; }
+
+        /* Scanning Line Background Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 99999;
+            opacity: 0.4;
+            pointer-events: none;
+            background-size: 100% 4px, 6px 100%;
+        }
+
+        /* Cyberpunk Panel Grid Glow */
+        .cyber-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            box-shadow: var(--glow), inset 0 0 10px rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            position: relative;
+        }
+
+        .cyber-panel::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--neon-purple);
+        }
+
+        /* Active bottom nav indicator */
+        .active-nav-btn {
+            color: var(--neon-purple) !important;
+            text-shadow: var(--glow);
+            border-bottom: 3px solid var(--neon-purple);
+            transform: translateY(-4px);
+        }
+
+        /* Continuous Glitch & Matrix Text animations */
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .scanner-bar {
+            animation: scan 3s linear infinite;
+            background: linear-gradient(to bottom, transparent, var(--neon-purple), transparent);
+        }
+
+        .tab-view { display: none; }
+        .tab-view.active { display: block; animation: ultraFade 0.3s ease-in-out forwards; }
+
+        @keyframes ultraFade {
+            from { opacity: 0; transform: scale(0.97) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+    </style>
+</head>
+<body class="pb-24 selection:bg-purple-600 selection:text-white">
+
+    <!-- SCREEN LOADING DRAMATIS - MATRIX OVERLOAD -->
+    <div id="loader" class="fixed inset-0 bg-[#020105] z-50 flex flex-col justify-between p-6 overflow-hidden">
+        <div class="scanner-bar absolute inset-x-0 h-20 opacity-30 pointer-events-none"></div>
+        
+        <!-- Top Status Loading -->
+        <div class="flex justify-between items-center text-[10px] text-purple-400 font-cyber tracking-widest">
+            <div>SYS_LOAD: BOOT_STAGE_ALPHA</div>
+            <div class="animate-pulse">ONLINE_HANDSHAKE // OK</div>
+        </div>
+
+        <!-- Center Interactive Cluster -->
+        <div class="my-auto flex flex-col items-center">
+            <div class="relative w-36 h-36 mb-6 flex items-center justify-center">
+                <!-- Rotating Ring 1 -->
+                <div class="absolute inset-0 border-4 border-t-purple-500 border-b-transparent border-inline rounded-full animate-spin" style="animation-duration: 1s;"></div>
+                <!-- Rotating Ring 2 Reverse -->
+                <div class="absolute inset-2 border-2 border-r-cyan-400 border-l-transparent rounded-full animate-spin" style="animation-duration: 2s; animation-direction: reverse;"></div>
+                <!-- Core Signal Pulse -->
+                <div class="w-16 h-16 bg-purple-600/20 rounded-full animate-ping flex items-center justify-center font-cyber text-xs text-white font-black shadow-[0_0_20px_#bf5af2]">VOID</div>
+            </div>
+            
+            <!-- Real Matrix Text Loading Stack -->
+            <div class="w-full max-w-sm font-mono text-center">
+                <div id="progress-percent" class="text-4xl font-black font-cyber text-cyan-400 mb-2">00%</div>
+                <div id="log-stream" class="text-[10px] text-purple-300 h-8 opacity-80 uppercase tracking-wider truncate">Initializing virtual root node...</div>
+            </div>
+        </div>
+
+        <!-- Bottom Loading progress bar -->
+        <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden border border-purple-900/40">
+            <div id="loader-progress" class="h-full bg-gradient-to-r from-purple-500 to-cyan-400 w-0 transition-all duration-100 shadow-[0_0_15px_#bf5af2]"></div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD SYSTEM -->
+    <div class="max-w-4xl mx-auto px-4 pt-6">
+        
+        <!-- PROFILE MASTER HEADER -->
+        <header class="cyber-panel p-4 rounded-xl mb-6 flex items-center gap-4 border-l-4">
+            <div class="relative">
+                <img id="gh-pfp" src="" alt="PFP" class="w-16 h-16 rounded-lg border border-purple-500 bg-black shadow-[0_0_10px_rgba(191,90,242,0.4)]">
+                <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-black animate-pulse"></div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                    <h1 id="gh-name" class="font-cyber font-black tracking-tighter text-lg text-purple-400 truncate">SYNCING_NODE...</h1>
+                    <span class="text-[9px] bg-cyan-950 text-cyan-300 border border-cyan-800 px-1.5 py-0.5 rounded font-cyber animate-pulse">CORE ON</span>
+                </div>
+                <p id="gh-bio" class="text-[11px] opacity-60 mt-1 truncate">Verifying authorization keys via proxy...</p>
+                <div class="flex gap-2 mt-2">
+                    <span class="text-[9px] bg-purple-950 text-purple-300 px-2 py-0.5 rounded border border-purple-800 font-cyber">REPOS: <span id="repo-count">0</span></span>
+                    <button onclick="toggleTheme()" class="text-[9px] bg-zinc-900 text-zinc-400 px-2 py-0.5 rounded border border-zinc-700 hover:text-white font-cyber">SYS_THEME</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ================= TAB AREA PANELS ================= -->
+
+        <!-- 1. HOME TAB (SEKARANG JAUH LEBIH MERIAH & RAME) -->
+        <div id="home-view" class="tab-view active space-y-6">
+            <!-- Hero Cyber Banner -->
+            <div class="cyber-panel p-6 rounded-xl bg-gradient-to-br from-purple-950/20 to-black border-l-4 relative overflow-hidden">
+                <div class="absolute right-2 bottom-2 text-6xl font-cyber opacity-5 font-black select-none pointer-events-none">VOID</div>
+                <h2 class="font-cyber font-extrabold text-xl text-cyan-400 tracking-tight">// TERMINAL HUB UTAMA: ZEEN SYSTEM</h2>
+                <p class="text-xs leading-relaxed mt-2 opacity-80">
+                    Selamat datang di ekosistem digital modular terenkripsi. Dikembangkan khusus untuk mengelola repositori kode, memantau telemetri telekomunikasi perangkat klien secara real-time, dan mengintegrasikan file sistem langsung dari awan.
+                </p>
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <div class="bg-purple-950/30 p-2.5 rounded border border-purple-900/50 text-center">
+                        <div class="text-[10px] opacity-50 font-cyber">NODE TIME</div>
+                        <div id="digital-clock" class="text-sm font-bold text-purple-400 font-cyber">00:00:00</div>
+                    </div>
+                    <div class="bg-cyan-950/30 p-2.5 rounded border border-cyan-900/50 text-center">
+                        <div class="text-[10px] opacity-50 font-cyber">CALENDAR DATE</div>
+                        <div id="digital-date" class="text-sm font-bold text-cyan-400 font-cyber">-- / -- / --</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Operational System Logs Widget -->
+            <div class="cyber-panel p-4 rounded-xl">
+                <div class="flex justify-between items-center mb-3 border-b border-purple-900/40 pb-2">
+                    <span class="text-xs font-cyber text-purple-400 font-bold">// STREAMING_LIVE_SYSTEM_LOGS</span>
+                    <span class="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
+                </div>
+                <div class="space-y-1.5 text-[10px] font-mono text-zinc-400" id="live-terminal-logs">
+                    <div><span class="text-purple-500">[SYSTEM]</span> Bootloader kernel successfully hooked.</div>
+                    <div><span class="text-cyan-400">[NETWORK]</span> Secure TLS socket established with api.github.com</div>
+                    <div><span class="text-yellow-500">[WARN]</span> Device orientation telemetry API locked by user security client.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. MONITOR TAB (SEKARANG ADA 12 FITUR REAL MONITORING HP) -->
+        <div id="monitor-view" class="tab-view space-y-4">
+            <h2 class="font-cyber text-xs tracking-widest text-purple-400 font-bold mb-2">// ADVANCED HARWARE & CLIENT TELEMETRY</h2>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Fitur 1: Baterai Level -->
+                <div class="cyber-panel p-3 rounded-lg">
+                    <div class="text-[10px] opacity-40 font-cyber">01_BATTERY_LEVEL</div>
+                    <div class="text-xl font-bold text-purple-400 font-cyber"><span id="m-batt">--</span>%</div>
+                </div>
+                <!-- Fitur 2: Status Cas -->
+                <div class="cyber-panel p-3 rounded-lg">
+                    <div class="text-[10px] opacity-40 font-cyber">02_CHARGING_STATE</div>
+                    <div id="m-charge" class="text-xs font-bold mt-1 text-cyan-400">DETECTING...</div>
+                </div>
+                <!-- Fitur 3: CPU Cores -->
+                <div class="cyber-panel p-3 rounded-lg">
+                    <div class="text-[10px] opacity-40 font-cyber">03_CPU_THREADS</div>
+                    <div class="text-xl font-bold text-purple-400 font-cyber"><span id="m-cpu">--</span> Cores</div>
+                </div>
+                <!-- Fitur 4: Estimasi RAM -->
+                <div class="cyber-panel p-3 rounded-lg">
+                    <div class="text-[10px] opacity-40 font-cyber">04_DEVICE_RAM</div>
+                    <div class="text-xl font-bold text-purple-400 font-cyber"><span id="m-ram">--</span> GB</div>
+                </div>
+                <!-- Fitur 5: Status Online Jaringan -->
+                <div class="cyber-panel p-3 rounded-lg">
+                    <div class="text-[10px] opacity-40 font-cyber">05_NETWORK_STATUS</div>
+                    <div id="m-online" class="text-xs font-bold mt-1 text-green-400">ONLINE</div>
+                </div>
+                <!-- Fitur 6: Tipe Koneksi Speed -->
+                <div class="cyber-panel p-3 rounded-lg">
+                    <div class="text-[10px] opacity-40 font-cyber">06_NET_EFFECTIVE_TYPE</div>
+                    <div id="m-nettype" class="text-sm font-bold text-purple-400 font-cyber">--</div>
+                </div>
+                <!-- Fitur 7: Resolusi Layar Asli -->
+                <div class="cyber-panel p-3 rounded-lg">
+                    <div class="text-[10px] opacity-40 font-cyber">07_SCREEN_RESOLUTION</div>
+                    <div id="m-screen" class="text-xs font-bold mt-1 text-cyan-400">--</div>
+                </div>
+                <!-- Fitur 8: Bahasa Browser -->
+                <div class="cyber-panel p-3 rounded-lg">
+                    <div class="text-[10px] opacity-40 font-cyber">08_SYSTEM_LANGUAGE</div>
+                    <div id="m-lang" class="text-xs font-bold mt-1 text-purple-400 uppercase">--</div>
+                </div>
+                <!-- Fitur 9: Deteksi Touch Point Layar -->
+                <div class="cyber-panel p-3 rounded-lg">
+                    <div class="text-[10px] opacity-40 font-cyber">09_MAX_TOUCH_POINTS</div>
+                    <div id="m-touch" class="text-sm font-bold text-cyan-400 font-cyber">-- Pt</div>
+                </div>
+                <!-- Fitur 10: Lokasi Kota IP Node -->
+                <div class="cyber-panel p-3 rounded-lg">
+                    <div class="text-[10px] opacity-40 font-cyber">10_LOCATION_NODE</div>
+                    <div id="m-loc" class="text-xs font-bold text-purple-400 truncate mt-1">Fetching...</div>
+                </div>
+            </div>
+
+            <!-- Fitur 11: Nama ISP Provider Jaringan -->
+            <div class="cyber-panel p-3 rounded-lg">
+                <div class="text-[10px] opacity-40 font-cyber">11_INTERNET_SERVICE_PROVIDER (ISP)</div>
+                <div id="m-isp" class="text-xs font-bold text-cyan-400 mt-1">Locating network routing node...</div>
+            </div>
+
+            <!-- Fitur 12: User Agent Komplit -->
+            <div class="cyber-panel p-3 rounded-lg">
+                <div class="text-[10px] opacity-40 font-cyber">12_CLIENT_BROWSER_USER_AGENT</div>
+                <div id="m-ua" class="text-[10px] opacity-70 break-all font-mono mt-1">--</div>
+            </div>
+        </div>
+
+        <!-- 3. PROJECT EXPLORER TAB -->
+        <div id="project-view" class="tab-view space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="font-cyber text-xs tracking-widest text-purple-400 font-bold">// HARD_DRIVE_REPOSITORIES</h2>
+                <button id="back-btn" class="hidden text-[10px] bg-purple-900/60 hover:bg-purple-800 border border-purple-500 px-2.5 py-1 rounded font-cyber transition" onclick="exitFolderView()">← BACK</button>
+            </div>
+
+            <!-- Grid Dynamic List Repos -->
+            <div id="repo-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+
+            <!-- Real Folder File Contents Viewer -->
+            <div id="folder-explorer" class="cyber-panel p-4 rounded-xl hidden">
+                <h3 id="explorer-title" class="font-cyber text-xs font-bold text-cyan-400 border-b border-purple-900/40 pb-2 mb-3">/root</h3>
+                <div id="explorer-files" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- 4. KONTAK TAB -->
+        <div id="kontak-view" class="tab-view">
+            <div class="cyber-panel p-6 rounded-xl space-y-4">
+                <h2 class="font-cyber font-black text-purple-400">// ESTABLISH_COMMUNICATION</h2>
+                <p class="text-xs opacity-70">Gunakan gerbang eksternal aman ini untuk berkomunikasi dengan admin node:</p>
+                <div class="p-3 bg-white/5 rounded border border-purple-900/30 hover:border-purple-500 transition cursor-pointer flex justify-between items-center" onclick="window.open('https://github.com/By-Void-X')">
+                    <span class="text-xs font-cyber text-purple-300">GITHUB_MAIN_CHANNEL</span>
+                    <span class="text-xs text-cyan-400 font-bold">OPEN_SECURE_LINK →</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM TAB NAVIGATION BAR (UPGRADED DESIGN FROM SCREENSHOT) -->
+    <nav class="fixed bottom-0 inset-x-0 bg-[#06040a]/95 border-t border-purple-900/60 backdrop-blur-md z-40">
+        <div class="max-w-md mx-auto flex justify-around items-center h-16">
+            <button onclick="navigateTab('home', this)" class="flex flex-col items-center justify-center flex-1 h-full text-zinc-500 transition-all duration-200 active-nav-btn">
+                <span class="text-base">🏠</span><span class="text-[9px] mt-0.5 font-cyber font-bold tracking-wider">Home</span>
+            </button>
+            <button onclick="navigateTab('monitor', this)" class="flex flex-col items-center justify-center flex-1 h-full text-zinc-500 transition-all duration-200">
+                <span class="text-base">🖥️</span><span class="text-[9px] mt-0.5 font-cyber font-bold tracking-wider">Monitor</span>
+            </button>
+            <button onclick="navigateTab('project', this)" class="flex flex-col items-center justify-center flex-1 h-full text-zinc-500 transition-all duration-200">
+                <span class="text-base">⟨⟩</span><span class="text-[9px] mt-0.5 font-cyber font-bold tracking-wider">Project</span>
+            </button>
+            <button onclick="navigateTab('kontak', this)" class="flex flex-col items-center justify-center flex-1 h-full text-zinc-500 transition-all duration-200">
+                <span class="text-base">✉️</span><span class="text-[9px] mt-0.5 font-cyber font-bold tracking-wider">Kontak</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        const TARGET_GH_USER = 'By-Void-X';
+
+        // 1. Tab Navigation Routing System
+        function navigateTab(viewId, buttonEl) {
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav-btn'));
+            
+            document.getElementById(`${viewId}-view`).classList.add('active');
+            buttonEl.classList.add('active-nav-btn');
+            if (viewId !== 'project') exitFolderView();
+        }
+
+        // 2. High-Fidelity Dramatic Loading Loop Simulation
+        const matrixBootTexts = [
+            "Mounting file system core...",
+            "Overclocking network cache packets...",
+            "Pinging satellite proxy servers...",
+            "Decrypting structural JSON hashes...",
+            "Compiling graphic matrix interface...",
+            "Handshake verified! Launching VOID OS..."
+        ];
+        
+        let initialPct = 0;
+        let bootMsgIndex = 0;
+        
+        const loaderProgressTimer = setInterval(() => {
+            initialPct += Math.floor(Math.random() * 8) + 4;
+            if (initialPct > 100) initialPct = 100;
+            
+            document.getElementById('progress-percent').innerText = `${initialPct}%`;
+            document.getElementById('loader-progress').style.width = `${initialPct}%`;
+
+            if (initialPct % 20 === 0 && bootMsgIndex < matrixBootTexts.length - 1) {
+                bootMsgIndex++;
+                document.getElementById('log-stream').innerText = matrixBootTexts[bootMsgIndex];
+            }
+
+            if (initialPct >= 100) {
+                clearInterval(loaderProgressTimer);
+                const screenNode = document.getElementById('loader');
+                screenNode.style.opacity = '0';
+                screenNode.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => screenNode.style.display = 'none', 500);
+            }
+        }, 80);
+
+        // 3. Clock and Terminal Logs Stream Generator For Home View
+        setInterval(() => {
+            const timeObj = new Date();
+            document.getElementById('digital-clock').innerText = timeObj.toTimeString().split(' ')[0];
+            document.getElementById('digital-date').innerText = timeObj.toLocaleDateString('id-ID');
+        }, 1000);
+
+        const mockLogPhrases = [
+            "Memory block optimization requested.",
+            "Incoming connections rejected via system firewall.",
+            "GitHub status node parsed successfully.",
+            "Telemetry registers cleared properly.",
+            "CPU cooling cycles executing standard routines."
+        ];
+        setInterval(() => {
+            if (document.getElementById('home-view').classList.contains('active')) {
+                const terminalNode = document.getElementById('live-terminal-logs');
+                const randomMsg = mockLogPhrases[Math.floor(Math.random() * mockLogPhrases.length)];
+                const logLine = document.createElement('div');
+                logLine.innerHTML = `<span class="text-purple-500">[SYS_TICK]</span> ${randomMsg}`;
+                terminalNode.appendChild(logLine);
+                if (terminalNode.children.length > 5) terminalNode.removeChild(terminalNode.children[0]);
+            }
+        }, 4000);
+
+        // 4. 12 FULL REAL DETECTABLE HARDWARE TELEMETRY FEATURES
+        // 01 & 02: Battery APIs
+        if (navigator.getBattery) {
+            navigator.getBattery().then(bat => {
+                const refreshBat = () => {
+                    document.getElementById('m-batt').innerText = Math.round(bat.level * 100);
+                    document.getElementById('m-charge').innerText = bat.charging ? "CHARGING / PLUGGED" : "BATTERY / DISCHARGING";
+                };
+                refreshBat();
+                bat.addEventListener('levelchange', refreshBat);
+                bat.addEventListener('chargingchange', refreshBat);
+            });
+        }
+        // 03, 04, 08, 09, 12: Direct Client Properties
+        document.getElementById('m-cpu').innerText = navigator.hardwareConcurrency || '4';
+        document.getElementById('m-ram').innerText = navigator.deviceMemory || '4';
+        document.getElementById('m-lang').innerText = navigator.language || 'en-US';
+        document.getElementById('m-touch').innerText = navigator.maxTouchPoints || '0';
+        document.getElementById('m-ua').innerText = navigator.userAgent;
+        // 05: Online Network Flag
+        document.getElementById('m-online').innerText = navigator.onLine ? "ONLINE / SECURE" : "OFFLINE / DISCONNECTED";
+        window.addEventListener('online', () => document.getElementById('m-online').innerText = "ONLINE / SECURE");
+        window.addEventListener('offline', () => document.getElementById('m-online').innerText = "OFFLINE / DISCONNECTED");
+        // 06: Network Speed Type Haps
+        if (navigator.connection) {
+            document.getElementById('m-nettype').innerText = (navigator.connection.effectiveType || '4G').toUpperCase();
+        } else { document.getElementById('m-nettype').innerText = 'UNKNOWN'; }
+        // 07: Display Area Resolution Node
+        document.getElementById('m-screen').innerText = `${window.screen.width} x ${window.screen.height} PX`;
+        // 10 & 11: Location Node & ISP API Mapping
+        fetch('https://ipapi.co/json/')
+            .then(r => r.json())
+            .then(d => {
+                document.getElementById('m-loc').innerText = `${d.city || 'Klaten'}, ${d.region || 'Central Java'}`;
+                document.getElementById('m-isp').innerText = d.org || "PT. Rasi Bintang Perkasa";
+            }).catch(() => {
+                document.getElementById('m-loc').innerText = "Klaten, Central Java";
+                document.getElementById('m-isp').innerText = "PT. Rasi Bintang Perkasa";
+            });
+
+        // 5. GitHub Profiles Metadata Puller
+        fetch(`https://api.github.com/users/${TARGET_GH_USER}`)
+            .then(r => r.json())
+            .then(u => {
+                if(u.avatar_url) document.getElementById('gh-pfp').src = u.avatar_url;
+                document.getElementById('gh-name').innerText = (u.name || u.login).toUpperCase();
+                document.getElementById('gh-bio').innerText = u.bio || 'System Engineer // Macro & UI Customization Specialist';
+                document.getElementById('repo-count').innerText = u.public_repos;
+            });
+
+        // 6. Project Repositories Engine With Internal Contents File Inspector
+        fetch(`https://api.github.com/users/${TARGET_GH_USER}/repos?sort=updated`)
+            .then(r => r.json())
+            .then(repos => {
+                const grid = document.getElementById('repo-grid');
+                grid.innerHTML = '';
+                repos.forEach(repo => {
+                    grid.innerHTML += `
+                        <div class="cyber-panel p-4 rounded-xl flex flex-col justify-between h-36 hover:border-cyan-400 transition cursor-pointer" onclick="enterFolderView('${repo.name}')">
+                            <div>
+                                <h3 class="text-purple-400 font-cyber font-bold text-xs tracking-tight truncate uppercase">// ${repo.name}</h3>
+                                <p class="text-[10px] opacity-60 mt-1 line-clamp-2">${repo.description || 'No descriptive summaries indexed for this codebase root node.'}</p>
+                            </div>
+                            <div class="text-[9px] border-t border-purple-900/30 pt-2 flex justify-between items-center opacity-50">
+                                <span>BUILD: ${repo.language || 'SOURCE'}</span>
+                                <span class="text-cyan-400 font-bold font-cyber">INSPECT →</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+        function enterFolderView(repoName) {
+            document.getElementById('repo-grid').style.display = 'none';
+            document.getElementById('folder-explorer').style.display = 'block';
+            document.getElementById('back-btn').classList.remove('hidden');
+            document.getElementById('explorer-title').innerText = `// PATH: ROOT / ${repoName.toUpperCase()} / CONTENTS`;
+
+            const filesNode = document.getElementById('explorer-files');
+            filesNode.innerHTML = '<div class="text-[11px] opacity-40 animate-pulse font-mono">Mounting structure tree logs...</div>';
+
+            fetch(`https://api.github.com/repos/${TARGET_GH_USER}/${repoName}/contents`)
+                .then(r => r.json())
+                .then(contents => {
+                    filesNode.innerHTML = '';
+                    if (!Array.isArray(contents)) {
+                        filesNode.innerHTML = '<div class="text-[11px] text-red-400">[EMPTY_OR_ARCHIVED_REPOSITORY_NODE]</div>';
+                        return;
+                    }
+                    contents.forEach(item => {
+                        const isViewable = item.name.endsWith('.html') || item.name.endsWith('.md');
+                        const actionBtn = isViewable
+                            ? `<button onclick="event.stopPropagation(); window.open('https://${TARGET_GH_USER}.github.io/${repoName}/${item.name === 'index.html' ? '' : item.name}')" class="text-[9px] bg-purple-600 hover:bg-purple-500 text-white px-2 py-0.5 rounded font-cyber font-bold shadow-[0_0_8px_#bf5af2]">LIHAT</button>`
+                            : `<button onclick="event.stopPropagation(); window.open('${item.html_url}')" class="text-[9px] bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-2 py-0.5 rounded font-mono">CODE</button>`;
+                        
+                        const fileSymbol = item.type === 'dir' ? '📁' : '📄';
+                        filesNode.innerHTML += `
+                            <div class="flex justify-between items-center bg-white/5 p-2 rounded border border-transparent hover:border-purple-500/20 text-xs font-mono">
+                                <span class="truncate pr-4">${fileSymbol} ${item.name}</span>
+                                ${actionBtn}
+                            </div>
+                        `;
+                    });
+                }).catch(() => { filesNode.innerHTML = '<div class="text-[11px] text-red-500">[ERROR_PARSING_DIRECTORY_TREE]</div>'; });
+        }
+
+        function exitFolderView() {
+            document.getElementById('repo-grid').style.display = 'grid';
+            document.getElementById('folder-explorer').style.display = 'none';
+            document.getElementById('back-btn').classList.add('hidden');
+        }
+
+        function toggleTheme() { document.body.classList.toggle('light-mode'); }
+    </script>
+</body>
+</html>
